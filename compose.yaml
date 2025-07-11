@@ -44,6 +44,8 @@ services:
       - database_data:/var/lib/mysql:rw
     networks:
       - default
+    ports:
+      - "3306:3306"
 
 volumes:
   database_data:

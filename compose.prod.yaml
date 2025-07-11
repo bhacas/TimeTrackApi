@@ -33,6 +33,7 @@ services:
 
   nginx:
     image: bhacas/timetrack-nginx:latest
+    container_name: timetrack-nginx
     restart: unless-stopped
     stop_signal: SIGQUIT
     <<: *environment

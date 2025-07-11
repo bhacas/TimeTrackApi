@@ -56,6 +56,25 @@ RUN chmod +x /usr/bin/local-php-security-checker \
 
 FROM php-base AS php-prod
 
+COPY bin bin
+COPY src src
+COPY config config
+COPY migrations migrations
+COPY public public
+COPY .env .env
+COPY composer.json composer.lock .docker/php/ini/production.ini ./
+
+RUN export APP_ENV=prod && \
+    composer install --no-dev --no-progress -anq && \
+    composer dump-env prod && \
+    mkdir -p var/cache/prod/pools && \
+    chmod 777 var/cache/prod/pools -R && \
+    mv production.ini /usr/local/etc/php/conf.d/zz-php.ini && \
+    sed -e "s/;opcache./opcache./g" -i /usr/local/etc/php/conf.d/zz-php.ini && \
+    php -v
+
+RUN chown -R www-data var/
+
 FROM ${CONTAINER_PROXY}nginx:${NGINX_IMAGE_VERSION} AS nginx-generic
 
 COPY .docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
