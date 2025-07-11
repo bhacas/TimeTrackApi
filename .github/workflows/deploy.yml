@@ -35,5 +35,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /opt/timetrack
+            curl -sSL https://raw.githubusercontent.com/bhacas/TimeTrackApi/refs/heads/master/compose.prod.yaml -o /opt/timetrack/docker-compose.yml
             docker compose pull
             docker compose up -d --force-recreate
+
