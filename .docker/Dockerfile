@@ -45,15 +45,16 @@ COPY .docker/php/ini/development.ini /usr/local/etc/php/conf.d/development.ini
 
 ADD https://github.com/fabpot/local-php-security-checker/releases/download/v1.0.0/local-php-security-checker_1.0.0_linux_amd64 /usr/bin/local-php-security-checker
 
-RUN chmod +x /usr/bin/local-php-security-checker
-RUN    apk add --no-cache --virtual .build-deps libxml2-dev libzip-dev linux-headers $BUILD_DEPS
-RUN    pecl install xdebug-${XDEBUG_VERSION}
-RUN    docker-php-ext-enable xdebug
-RUN    pecl install pcov-${PCOV_VERSION}
-RUN    docker-php-ext-enable pcov
-RUN    apk del --no-cache .build-deps
-RUN    rm -rf /tmp/*
+RUN chmod +x /usr/bin/local-php-security-checker \
+    && apk add --no-cache --virtual .build-deps libxml2-dev libzip-dev linux-headers $BUILD_DEPS \
+    && pecl install xdebug-${XDEBUG_VERSION} \
+    && docker-php-ext-enable xdebug \
+    && pecl install pcov-${PCOV_VERSION} \
+    && docker-php-ext-enable pcov \
+    && apk del --no-cache .build-deps \
+    && rm -rf /tmp/*
 
+FROM php-base AS php-prod
 
 FROM ${CONTAINER_PROXY}nginx:${NGINX_IMAGE_VERSION} AS nginx-generic
 

@@ -1,14 +1,52 @@
-# Production environment override
+version: '3.9'
+
+x-environment: &environment
+  environment:
+    APP_ENV: ${APP_ENV}
+    APP_SECRET: ${APP_SECRET}
+    APP_DEBUG: ${APP_DEBUG}
+    TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+    TRUSTED_HOSTS: ${TRUSTED_HOSTS}
+    DATABASE_URL: ${DATABASE_URL}
+    CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN}
+    MERCURE_URL: ${MERCURE_URL}
+    MERCURE_PUBLIC_URL: ${MERCURE_PUBLIC_URL}
+    MERCURE_JWT_SECRET: ${MERCURE_JWT_SECRET}
+    JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+    JWT_PASSPHRASE: ${JWT_PASSPHRASE}
+    DOCKER_NGINX_EXTERNAL_PORT: ${DOCKER_NGINX_EXTERNAL_PORT}
+    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
+    MYSQL_DATABASE: ${MYSQL_DATABASE}
+    MYSQL_USER: ${MYSQL_USER}
+    MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
 services:
   php:
-    build:
-      context: ./
-      target: frankenphp_prod
-    environment:
-      APP_SECRET: ${APP_SECRET}
-      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+    image: bhacas/timetrack-php:latest
+    container_name: timetrack-php
+    restart: always
+    depends_on:
+      - db
+    stop_signal: SIGQUIT
+    <<: *environment
 
-  database:
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  nginx:
+    image: bhacas/timetrack-nginx:latest
+    restart: unless-stopped
+    stop_signal: SIGQUIT
+    <<: *environment
+    ports:
+      - ${DOCKER_NGINX_EXTERNAL_PORT}:80
+    depends_on:
+      - php
+
+  db:
+    image: mysql:8.0
+    container_name: timetrack-db
+    restart: always
+    <<: *environment
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"

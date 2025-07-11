@@ -6,7 +6,8 @@ on:
       - master
 
 env:
-  IMAGE_NAME: bhacas/timetrack-api:latest
+  PHP_IMAGE_NAME: bhacas/timetrack-php:latest
+  WEB_IMAGE_NAME: bhacas/timetrack-nginx:latest
 
 jobs:
   deploy:
@@ -21,8 +22,10 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t $IMAGE_NAME  -f .docker/Dockerfile ./
-          docker push $IMAGE_NAME
+          docker build -t PHP_IMAGE_NAME -f .docker/Dockerfile --target=php-prod ./
+          docker push PHP_IMAGE_NAME
+          docker build -t WEB_IMAGE_NAME -f .docker/Dockerfile --target=nginx-prod ./
+          docker push PHP_IMAGE_NAME
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@master
