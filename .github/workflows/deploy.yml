@@ -22,10 +22,10 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t PHP_IMAGE_NAME -f .docker/Dockerfile --target=php-prod ./
-          docker push PHP_IMAGE_NAME
-          docker build -t WEB_IMAGE_NAME -f .docker/Dockerfile --target=nginx-prod ./
-          docker push PHP_IMAGE_NAME
+          docker build -t $PHP_IMAGE_NAME -f .docker/Dockerfile --target=php-prod ./
+          docker push $PHP_IMAGE_NAME
+          docker build -t $WEB_IMAGE_NAME -f .docker/Dockerfile --target=nginx-prod ./
+          docker push $PHP_IMAGE_NAME
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@master
