@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\User;
+use App\Domain\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -56,7 +56,7 @@ class CreateUserCommand extends Command
         $this->em->persist($user);
         $this->em->flush();
 
-        $output->writeln('Użytkownik został utworzony.');
+        $output->writeln('<info>User created successfully.</info>');
 
         return Command::SUCCESS;
     }

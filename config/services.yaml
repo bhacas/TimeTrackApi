@@ -19,20 +19,30 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-
-    App\DataPersister\UserDataPersister:
-        decorates: 'api_platform.doctrine.orm.state.persist_processor'
-        arguments:
-            $decorated: '@App\DataPersister\UserDataPersister.inner'
-
-    App\State\TimeEntryProcessor:
-        decorates: 'api_platform.doctrine.orm.state.persist_processor'
-        arguments:
-            $persistProcessor: '@App\State\TimeEntryProcessor.inner'
-
-    App\Doctrine\TimeEntryExtension:
-        arguments: [ '@security.helper' ]
-        tags:
-            - { name: 'api_platform.doctrine.orm.query_extension.collection' }
-            - { name: 'api_platform.doctrine.orm.query_extension.item' }
     
+    App\Shared\Bus\CommandBus:
+        calls:
+            - method: register
+              arguments:
+                  - App\Application\User\Command\LoginUserCommand
+                  - '@App\Application\User\Handler\LoginUserHandler'
+            -   method: register
+                arguments:
+                    - App\Application\TimeEntry\Command\AddTimeEntryCommand
+                    - '@App\Application\TimeEntry\Handler\AddTimeEntryHandler'
+            -   method: register
+                arguments:
+                    - App\Application\TimeEntry\Command\UpdateTimeEntryCommand
+                    - '@App\Application\TimeEntry\Handler\UpdateTimeEntryHandler'
+            - method: register
+              arguments:
+                  - App\Application\TimeEntry\Command\DeleteTimeEntryCommand
+                  - '@App\Application\TimeEntry\Handler\DeleteTimeEntryHandler'
+
+    App\Shared\Bus\QueryBus:
+        calls:
+            - method: register
+              arguments:
+                  - App\Application\User\Query\GetLoggedUserQuery
+                  - '@App\Application\User\Query\GetLoggedUserHandler'
+
