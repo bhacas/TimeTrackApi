@@ -1,3 +1,4 @@
+.idea
 /docker/db/data
 
 ###> symfony/framework-bundle ###
