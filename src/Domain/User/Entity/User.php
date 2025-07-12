@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -16,26 +15,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user:read', 'user:write'])]
     private ?string $email = null;
 
     #[ORM\Column]
     private array $roles = [];
 
     #[ORM\Column]
-    #[Groups(['user:write'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read', 'user:write'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\Choice(choices: ['employee', 'manager'], message: 'Choose a valid role: employee or manager.')]
     private ?string $role = null; // 'employee' or 'manager'
 
@@ -43,7 +37,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?self $manager = null;
 
     #[ORM\OneToMany(mappedBy: 'manager', targetEntity: self::class)]
-    #[Groups(['user:read'])]
     private Collection $teamMembers;
 
     public function __construct()
