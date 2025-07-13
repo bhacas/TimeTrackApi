@@ -5,7 +5,9 @@ namespace App\Domain\TimeEntry\Entity;
 
 use App\Domain\User\Entity\User;
 use App\Infrastructure\Persistence\Doctrine\TimeEntryRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use DomainException;
 
 #[ORM\Entity(repositoryClass: TimeEntryRepository::class)]
 class TimeEntry
@@ -36,6 +38,65 @@ class TimeEntry
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    public static function create(
+        User $user,
+        string $date,
+        string $startTime,
+        string $endTime,
+        int $duration,
+        string $description,
+        ?string $project = null
+    ): self {
+        $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+        $start = DateTime::createFromFormat('H:i', $startTime);
+        $end = DateTime::createFromFormat('H:i', $endTime);
+
+        if (!$dateObj || !$start || !$end) {
+            throw new DomainException('Invalid date or time format.');
+        }
+
+        if ($start >= $end) {
+            throw new DomainException('Start time must be before end time.');
+        }
+
+        if ($duration <= 0) {
+            throw new DomainException('Duration must be a positive number.');
+        }
+
+        if (strlen(trim($description)) < 1) {
+            throw new DomainException('Description must be at least 3 characters long.');
+        }
+
+        $entry = new self();
+        $entry->user = $user;
+        $entry->date = $dateObj;
+        $entry->startTime = $start;
+        $entry->endTime = $end;
+        $entry->duration = $duration;
+        $entry->description = $description;
+        $entry->project = $project;
+
+        return $entry;
+    }
+
+    public function update(
+        string $date,
+        string $startTime,
+        string $endTime,
+        int $duration,
+        string $description,
+        ?string $project = null
+    ): void {
+        $updated = self::create($this->user, $date, $startTime, $endTime, $duration, $description, $project);
+
+        $this->date = $updated->date;
+        $this->startTime = $updated->startTime;
+        $this->endTime = $updated->endTime;
+        $this->duration = $updated->duration;
+        $this->description = $updated->description;
+        $this->project = $updated->project;
+    }
 
     public function getId(): ?int
     {

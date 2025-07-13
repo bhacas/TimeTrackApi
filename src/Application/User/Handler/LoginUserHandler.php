@@ -4,24 +4,30 @@ namespace App\Application\User\Handler;
 
 use App\Application\User\Command\LoginUserCommand;
 use App\Domain\User\Repository\UserRepositoryInterface;
-use App\Infrastructure\Security\JWTService;
-use App\Shared\Exception\AuthenticationException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class LoginUserHandler
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private JWTService $jwtService
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly JWTTokenManagerInterface $jwtManager
     ) {}
 
     public function __invoke(LoginUserCommand $command): string
     {
         $user = $this->userRepository->findByEmail($command->email);
 
-        if (!$user || !password_verify($command->password, $user->getPassword())) {
-            throw new AuthenticationException('Invalid credentials');
+        if (!$user) {
+            throw new AuthenticationException('Invalid credentials.');
         }
 
-        return $this->jwtService->createToken($user);
+        if (!$this->passwordHasher->isPasswordValid($user, $command->password)) {
+            throw new AuthenticationException('Invalid credentials.');
+        }
+
+        return $this->jwtManager->create($user);
     }
 }

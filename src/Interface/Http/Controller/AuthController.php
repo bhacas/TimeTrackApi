@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 class AuthController extends AbstractController
@@ -19,7 +20,9 @@ class AuthController extends AbstractController
     public function __construct(
         private readonly CommandBus            $commandBus,
         private readonly QueryBus              $queryBus,
-        private readonly TokenStorageInterface $tokenStorage)
+        private readonly TokenStorageInterface $tokenStorage,
+        private readonly ValidatorInterface     $validator
+    )
     {
     }
 
@@ -32,6 +35,14 @@ class AuthController extends AbstractController
             $data['email'] ?? '',
             $data['password'] ?? ''
         );
+
+        $errors = $this->validator->validate($command);
+
+        if (count($errors) > 0) {
+            return new JsonResponse([
+                'errors' => array_map(fn($e) => $e->getPropertyPath() . ': ' . $e->getMessage(), iterator_to_array($errors))
+            ], 400);
+        }
 
         $token = $this->commandBus->handle($command);
 

@@ -8,12 +8,14 @@ use App\Application\TimeEntry\Command\UpdateTimeEntryCommand;
 use App\Application\TimeEntry\Dto\TimeEntryDtoFactory;
 use App\Domain\TimeEntry\Repository\TimeEntryRepositoryInterface;
 use App\Shared\Bus\CommandBus;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 class TimeEntryController
@@ -21,7 +23,8 @@ class TimeEntryController
     public function __construct(
         private readonly CommandBus $commandBus,
         private readonly TimeEntryRepositoryInterface $timeEntryRepository,
-        private readonly TokenStorageInterface $tokenStorage
+        private readonly TokenStorageInterface $tokenStorage,
+        private readonly ValidatorInterface $validator,
     ) {}
 
     #[Route('/api/time_entries', name: 'get_time_entries', methods: ['GET'])]
@@ -64,6 +67,14 @@ class TimeEntryController
             description: $data['description'] ?? '',
             project: $data['project'] ?? null
         );
+
+        $errors = $this->validator->validate($command);
+        if (count($errors) > 0) {
+            return new JsonResponse([
+                'errors' => array_map(fn($e) => $e->getPropertyPath() . ': ' . $e->getMessage(), iterator_to_array($errors))
+            ], 400);
+        }
+
         $id = $this->commandBus->handle($command);
         $entry = $this->timeEntryRepository->findById($id);
         $dto = TimeEntryDtoFactory::createFromEntity($entry);
@@ -90,6 +101,14 @@ class TimeEntryController
             description: $data['description'] ?? '',
             project: $data['project'] ?? null
         );
+
+        $errors = $this->validator->validate($command);
+        if (count($errors) > 0) {
+            return new JsonResponse([
+                'errors' => array_map(fn($e) => $e->getPropertyPath() . ': ' . $e->getMessage(), iterator_to_array($errors))
+            ], 400);
+        }
+
         $id = $this->commandBus->handle($command);
 
         $entry = $this->timeEntryRepository->findById($id);

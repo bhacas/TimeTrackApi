@@ -24,15 +24,16 @@ class AddTimeEntryHandler
             throw new \InvalidArgumentException('User not found');
         }
 
-        $entry = new TimeEntry();
-        $entry->setUser($user);
-        $entry->setDescription($command->description);
-        $entry->setDate(DateTime::createFromFormat('Y-m-d', $command->date));
-        $entry->setStartTime(DateTime::createFromFormat('H:i', $command->startTime));
-        $entry->setEndTime(DateTime::createFromFormat('H:i', $command->endTime));
-        $entry->setProject($command->project);
-        $entry->setDescription($command->description);
-        $entry->setDuration($command->duration);
+        $entry = TimeEntry::create(
+            user: $user,
+            date: $command->date,
+            startTime: $command->startTime,
+            endTime: $command->endTime,
+            duration: $command->duration,
+            description: $command->description,
+            project: $command->project
+        );
+
         $this->timeEntryRepository->save($entry);
 
         return $entry->getId();
